@@ -1,6 +1,5 @@
 import { Link, NavLink } from "react-router-dom";
 import { ShoppingBag, Search } from "lucide-react";
-import logo from "../../assets/images/logo.jpg"
 function Navbar() {
   const navLinks = [
     { name: "Home", path: "/" },
@@ -8,11 +7,11 @@ function Navbar() {
   ];
 
   return (
-    <header className="w-full bg-aura-cream">
+    <header className="w-full bg-aura-sage">
       <nav className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5">
 
         <Link to="/" className="flex items-center">
-          <img src={logo} alt="AURA Handbags" className="h-14 w-auto object-contain rounded-full" />
+          <img src="../../public/images/logo.jpg" alt="AURA Handbags" className="h-14 w-auto object-contain rounded-full" />
         </Link>
 
         <div className="hidden items-center gap-10 md:flex">
