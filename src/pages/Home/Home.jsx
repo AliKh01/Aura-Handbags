@@ -2,22 +2,21 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
-const bags = [
-  {
-    id: 1,
-    image: "/images/product-1.jpeg",
-  },
-  {
-    id: 2,
-    image: "/images/product-2.jpeg",
-  },
-  {
-    id: 3,
-    image: "/images/product-3.jpeg",
-  },
-];
+import products from "../../data/products.js";
+
+// اختيار 3 منتجات متاحة عشوائياً
+const getFeaturedBags = () => {
+  const availableProducts = products.filter(
+    (product) => product.stock > 0
+  );
+
+  return [...availableProducts]
+    .sort(() => Math.random() - 0.5)
+    .slice(0, 3);
+};
 
 function Home() {
+  const [bags] = useState(getFeaturedBags);
   const [activeIndex, setActiveIndex] = useState(0);
   const [direction, setDirection] = useState(1);
   const [animating, setAnimating] = useState(false);
@@ -104,31 +103,31 @@ function Home() {
                 zIndex: bags.length - position,
                 transform: isTop
                   ? animating
-                    ? `translateX(${ direction * 150} %) rotate(${ direction * 18}deg)`
+                    ? `translateX(${direction * 150} %) rotate(${direction * 18}deg)`
                     : "translateX(0) rotate(0deg)"
-            : `translateY(${position * 13}px) scale(${1 - position * 0.055}) rotate(${position % 2 === 0 ? 3 : -3}deg)`,
-            opacity: animating && isTop ? 0 : 1,
-            transition: "all 650ms cubic-bezier(0.22, 1, 0.36, 1)",
-            pointerEvents: isTop && !animating ? "auto" : "none",
+                  : `translateY(${position * 13}px) scale(${1 - position * 0.055}) rotate(${position % 2 === 0 ? 3 : -3}deg)`,
+                opacity: animating && isTop ? 0 : 1,
+                transition: "all 650ms cubic-bezier(0.22, 1, 0.36, 1)",
+                pointerEvents: isTop && !animating ? "auto" : "none",
               };
 
-            return (
-            <Link
-              key={bag.id}
-              to={`/product/${bag.id}`}
-              className="absolute inset-0 block overflow-hidden rounded-sm bg-aura-sage shadow-xl"
-              style={cardStyle}
-              aria-label={`View handbag ${bag.id}`}
-              tabIndex={isTop && !animating ? 0 : -1}
-            >
-              <img
-                src={bag.image}
-                alt={`AURA Handbag ${bag.id}`}
-                draggable="false"
-                className="h-full w-full select-none object-cover"
-              />
-            </Link>
-            );
+              return (
+                <Link
+                  key={bag.id}
+                  to={`/product/${bag.id}`}
+                  className="absolute inset-0 block overflow-hidden rounded-sm bg-aura-sage shadow-xl"
+                  style={cardStyle}
+                  aria-label={`View handbag ${bag.id}`}
+                  tabIndex={isTop && !animating ? 0 : -1}
+                >
+                  <img
+                    src={bag.image}
+                    alt={`AURA Handbag ${bag.id}`}
+                    draggable="false"
+                    className="h-full w-full select-none object-cover"
+                  />
+                </Link>
+              );
             })}
 
           </div>
