@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { CartProvider } from "./context/CartContext";
-
+import { useEffect } from "react";
+import { supabase } from "./lib/supabase";
 import MainLayout from "./components/layout/MainLayout";
 import Home from "./pages/Home/Home";
 import Shop from "./pages/Shop/Shop";
@@ -10,6 +11,20 @@ import Checkout from "./pages/Checkout/Checkout";
 import Admin from "./pages/Admin/Admin";
 
 function App() {
+  useEffect(() => {
+  const testConnection = async () => {
+    const { data, error } = await supabase.auth.getSession();
+
+    if (error) {
+      console.error("Supabase connection failed:", error.message);
+      return;
+    }
+
+    console.log("Supabase connected successfully!");
+  };
+
+  testConnection();
+}, []);
   return (
     <CartProvider>
       <BrowserRouter>
