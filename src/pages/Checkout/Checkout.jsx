@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import {
   ArrowLeft,
@@ -6,11 +7,17 @@ import {
   MapPin,
   User,
   Phone,
+  CreditCard,
+  Wallet,
+  Banknote,
+  Check,
 } from "lucide-react";
 import { useCart } from "../../context/CartContext";
 
 function Checkout() {
   const { cartItems, subtotal, totalItems } = useCart();
+
+  const [paymentMethod, setPaymentMethod] = useState("cod");
 
   if (cartItems.length === 0) {
     return (
@@ -42,6 +49,27 @@ function Checkout() {
 
   const labelClass =
     "text-xs font-medium uppercase tracking-wider text-aura-brown";
+
+  const paymentMethods = [
+    {
+      id: "cod",
+      name: "Cash on Delivery",
+      description: "Pay when your order arrives.",
+      icon: Banknote,
+    },
+    {
+      id: "visa",
+      name: "Visa Card",
+      description: "Pay securely using your Visa card.",
+      icon: CreditCard,
+    },
+    {
+      id: "wish",
+      name: "Wish Money",
+      description: "Pay through the Wish application.",
+      icon: Wallet,
+    },
+  ];
 
   return (
     <section className="min-h-screen bg-white px-5 py-10 md:px-10 md:py-14">
@@ -110,9 +138,7 @@ function Checkout() {
                   <Phone
                     size={17}
                     className="absolute left-4 top-1/2 -translate-y-1/2 text-aura-brown/40"
-                  />
-
-                  <input
+                  /><input
                     type="tel"
                     name="phone"
                     placeholder="+961 XX XXX XXX"
@@ -126,7 +152,7 @@ function Checkout() {
                 </p>
               </div>
 
-              {/* Location */}
+              {/* Delivery Address */}
               <div className="flex items-center gap-3 border-t border-aura-brown/10 pt-6">
                 <MapPin size={19} className="text-aura-olive" />
 
@@ -211,6 +237,7 @@ function Checkout() {
 
             <div className="my-5 h-px bg-aura-brown/15" />
 
+            {/* Products */}
             <div className="max-h-[350px] space-y-5 overflow-y-auto">
               {cartItems.map((item) => (
                 <div
@@ -219,8 +246,8 @@ function Checkout() {
                 >
                   <div className="h-20 w-16 shrink-0 overflow-hidden bg-aura-sage">
                     <img
-                      src={item.images?.[0] || item.image}
-                      alt={item.name}
+                      src={item.image || item.images?.[0]}
+                      alt={`${item.name} - ${item.selectedColor}`}
                       className="h-full w-full object-cover"
                     />
                   </div>
@@ -231,9 +258,8 @@ function Checkout() {
                     </h3>
 
                     <p className="mt-1 text-xs text-aura-brown/50">
-                      {item.selectedColor}
+                      Color: {item.selectedColor}
                     </p>
-
                     <p className="mt-1 text-xs text-aura-brown/60">
                       Qty: {item.quantity}
                     </p>
@@ -248,6 +274,7 @@ function Checkout() {
 
             <div className="my-6 h-px bg-aura-brown/15" />
 
+            {/* Prices */}
             <div className="flex justify-between text-sm text-aura-brown/60">
               <span>Subtotal</span>
               <span>${subtotal.toFixed(2)}</span>
@@ -270,21 +297,96 @@ function Checkout() {
               </span>
             </div>
 
-            {/* Payment */}
-            <div className="mt-6 bg-aura-sage/60 p-4">
-              <p className="text-xs font-semibold uppercase tracking-widest text-aura-brown">
+            {/* Payment Methods */}
+            <div className="mt-7">
+              <h3 className="mb-4 text-xs font-semibold uppercase tracking-widest text-aura-brown">
                 Payment Method
-              </p>
+              </h3>
 
-              <p className="mt-2 text-sm text-aura-brown">
-                Cash on Delivery
-              </p>
+              <div className="space-y-3">
+                {paymentMethods.map((method) => {
+                  const Icon = method.icon;
+                  const isSelected = paymentMethod === method.id;
 
-              <p className="mt-1 text-xs text-aura-brown/55">
-                Pay when your order arrives.
-              </p>
+                  return (
+                    <button
+                      key={method.id}
+                      type="button"
+                      onClick={() => setPaymentMethod(method.id)}
+                      className={`flex w-full items-center gap-3 border p-3 text-left transition ${
+                        isSelected
+                          ? "border-aura-brown bg-aura-sage/50"
+                          : "border-aura-brown/15 hover:border-aura-olive"
+                      }`}
+                    >
+                      <Icon
+                        size={21}
+                        className="shrink-0 text-aura-olive"
+                      />
+
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-medium text-aura-brown">
+                          {method.name}
+                        </p>
+
+                        <p className="mt-1 text-[10px] text-aura-brown/55">
+                          {method.description}
+                        </p>
+                      </div>
+
+                      <div
+                        className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border ${
+                          isSelected
+                            ? "border-aura-brown bg-aura-brown text-white"
+                            : "border-aura-brown/30"
+                        }`}
+                      >
+                        {isSelected && <Check size={12} />}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Payment Information */}
+              <div className="mt-4 bg-aura-sage/60 p-4">
+                {paymentMethod === "cod" && (
+                  <>
+                    <p className="text-xs font-semibold text-aura-brown">
+                      Cash on Delivery
+                    </p>
+
+                    <p className="mt-1 text-xs leading-5 text-aura-brown/60">
+                      Pay in cash when your order arrives.
+                    </p>
+                  </>
+                )}
+
+                {paymentMethod === "visa" && (
+                  <>
+                    <p className="text-xs font-semibold text-aura-brown">
+                      Visa Card Payment
+                    </p><p className="mt-1 text-xs leading-5 text-aura-brown/60">
+                      Secure card payment instructions will be available once the payment gateway is connected.
+                    </p>
+                  </>
+                )}
+
+                {paymentMethod === "wish" && (
+                  <>
+                    <p className="text-xs font-semibold text-aura-brown">
+                      Wish Money Payment
+                    </p>
+
+                    <p className="mt-1 text-xs leading-5 text-aura-brown/60">
+                      Wish transfer details and payment confirmation instructions will be provided after setup.
+                    </p>
+                  </>
+                )}
+              </div>
             </div>
 
+            {/* Place Order */}
             <button
               type="button"
               disabled
@@ -295,7 +397,7 @@ function Checkout() {
             </button>
 
             <p className="mt-3 text-center text-[10px] text-aura-brown/45">
-              Order submission will be enabled in the next step.
+              Order submission will be enabled after backend integration.
             </p>
 
           </aside>

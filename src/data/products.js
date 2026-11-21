@@ -3,9 +3,18 @@ const products = [
     id: 1,
     name: "The Classic Bag",
     price: 45,
-    image: "/images/product-1.jpeg",
-    images: ["/images/product-1.jpeg"],
+    image: "/images/product-3.jpeg",
+    images: ["/images/product-3.jpeg"],
     colors: ["Beige", "Black"],
+    variants: {
+      Beige: {
+        images: ["/images/product-3.jpeg"],
+      },
+      Black: {
+        // Replace with the actual black bag photos when available
+        images: ["/images/product-2.jpeg"],
+      },
+    },
     collection: "Classic Collection",
     description:
       "A timeless handbag designed to add elegance to your everyday look.",
@@ -20,6 +29,11 @@ const products = [
     image: "/images/product-2.jpeg",
     images: ["/images/product-2.jpeg"],
     colors: ["Brown"],
+    variants: {
+      Brown: {
+        images: ["/images/product-2.jpeg"],
+      },
+    },
     collection: "New Collection",
     description:
       "An elegant handbag with a refined design for every occasion.",
@@ -34,6 +48,15 @@ const products = [
     image: "/images/product-3.jpeg",
     images: ["/images/product-3.jpeg"],
     colors: ["Black", "Pink"],
+    variants: {
+      Black: {
+        images: ["/images/product-3.jpeg"],
+      },
+      Pink: {
+        // Replace with the actual pink bag photos when available
+        images: ["/images/product-3.jpeg"],
+      },
+    },
     collection: "New Collection",
     description:
       "A versatile handbag that combines practical design with timeless style.",

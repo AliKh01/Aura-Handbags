@@ -19,6 +19,14 @@ export function CartProvider({ children }) {
 
   // Add product to cart
   const addToCart = (product, color, quantity = 1) => {
+    const variantImages =
+      product.variants?.[color]?.images || product.images;
+
+    const selectedImages =
+      variantImages?.length > 0
+        ? variantImages
+        : [product.image];
+
     setCartItems((prevItems) => {
       const existingItem = prevItems.find(
         (item) => item.id === product.id && item.selectedColor === color
@@ -36,13 +44,14 @@ export function CartProvider({ children }) {
         ...prevItems,
         {
           ...product,
+          image: selectedImages[0],
+          images: selectedImages,
           selectedColor: color,
           quantity,
         },
       ];
     });
   };
-
   // Remove product from cart
   const removeFromCart = (productId, color) => {
     setCartItems((prevItems) =>
