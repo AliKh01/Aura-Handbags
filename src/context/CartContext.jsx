@@ -19,39 +19,51 @@ export function CartProvider({ children }) {
 
   // Add product to cart
   const addToCart = (product, color, quantity = 1) => {
-    const variantImages =
-      product.variants?.[color]?.images || product.images;
+  const stock = Number(product.stock) || 0;
 
-    const selectedImages =
-      variantImages?.length > 0
-        ? variantImages
-        : [product.image];
+  const variantImages =
+    product.variants?.[color]?.images || product.images;
 
-    setCartItems((prevItems) => {
-      const existingItem = prevItems.find(
-        (item) => item.id === product.id && item.selectedColor === color
+  const selectedImages =
+    variantImages?.length > 0 ? variantImages : [product.image];
+
+  // هل المنتج بنفس اللون موجود مسبقاً بالسلة؟
+  const existingItem = cartItems.find(
+    (item) => item.id === product.id && item.selectedColor === color
+  );
+
+  // احسب الكمية الجديدة مع الكمية الموجودة
+  const currentQuantity = existingItem?.quantity || 0;
+  const newQuantity = currentQuantity + quantity;
+
+  // منع تجاوز المخزون
+  if (newQuantity > stock) {
+    return false;
+  }
+
+  setCartItems((prevItems) => {
+    if (existingItem) {
+      return prevItems.map((item) =>
+        item.id === product.id && item.selectedColor === color
+          ? { ...item, quantity: newQuantity }
+          : item
       );
+    }
 
-      if (existingItem) {
-        return prevItems.map((item) =>
-          item.id === product.id && item.selectedColor === color
-            ? { ...item, quantity: item.quantity + quantity }
-            : item
-        );
-      }
+    return [
+      ...prevItems,
+      {
+        ...product,
+        image: selectedImages[0],
+        images: selectedImages,
+        selectedColor: color,
+        quantity,
+      },
+    ];
+  });
 
-      return [
-        ...prevItems,
-        {
-          ...product,
-          image: selectedImages[0],
-          images: selectedImages,
-          selectedColor: color,
-          quantity,
-        },
-      ];
-    });
-  };
+  return true;
+};
   // Remove product from cart
   const removeFromCart = (productId, color) => {
     setCartItems((prevItems) =>

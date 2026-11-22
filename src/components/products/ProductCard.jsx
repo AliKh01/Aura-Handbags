@@ -2,6 +2,8 @@ import { Link } from "react-router-dom";
 import { ArrowUpRight } from "lucide-react";
 
 function ProductCard({ product }) {
+  const colors = product.colors || [];
+
   return (
     <Link
       to={`/product/${product.id}`}
@@ -9,8 +11,9 @@ function ProductCard({ product }) {
     >
       <div className="relative aspect-[3/4] overflow-hidden bg-aura-sage">
         <img
-          src={product.image}
+          src={product.image || "/images/placeholder.jpg"}
           alt={product.name}
+          loading="lazy"
           className="h-full w-full object-cover transition duration-700 group-hover:scale-105"
         />
 
@@ -26,12 +29,12 @@ function ProductCard({ product }) {
           </h3>
 
           <p className="mt-2 text-xs text-aura-brown/60">
-            {product.colors.join(" · ")}
+            {colors.join(" · ")}
           </p>
         </div>
 
         <p className="whitespace-nowrap text-sm font-medium text-aura-brown">
-          ${product.price.toFixed(2)}
+          ${Number(product.price).toFixed(2)}
         </p>
       </div>
     </Link>
