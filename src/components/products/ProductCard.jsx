@@ -11,7 +11,7 @@ function ProductCard({ product }) {
     >
       <div className="relative aspect-[3/4] overflow-hidden bg-aura-sage">
         <img
-          src={product.image || "/images/placeholder.jpg"}
+          src={product.image}
           alt={product.name}
           loading="lazy"
           className="h-full w-full object-cover transition duration-700 group-hover:scale-105"

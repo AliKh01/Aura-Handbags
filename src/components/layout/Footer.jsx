@@ -1,6 +1,5 @@
 import {
   Globe,
-  MessageCircle,
   MapPin,
   ArrowUpRight,
 } from "lucide-react";
