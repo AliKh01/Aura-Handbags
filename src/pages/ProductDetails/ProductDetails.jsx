@@ -35,13 +35,20 @@ function ProductDetails() {
 
         setProduct(data);
 
-        const firstAvailable = data.variants.find(
+        const variants = data.variants || [];
+
+        const firstAvailable = variants.find(
           (variant) => variant.available
         );
 
-        const firstVariant = firstAvailable || data.variants[0];
+        const firstVariant = firstAvailable || variants[0];
 
-        setSelectedColor(firstVariant?.color?.name || "");
+        setSelectedColor(
+          data.product_type === "handbag"
+            ? firstVariant?.color?.name || ""
+            : ""
+        );
+
         setSelectedImage(0);
         setQuantity(1);
       } catch (err) {
@@ -86,24 +93,36 @@ function ProductDetails() {
     );
   }
 
-  // Get selected variant
-  const selectedVariant = product.variants.find(
-    (variant) => variant.color?.name === selectedColor
-  );
+  // Product type
+  const isAccessory = product.product_type === "accessory";
 
-  const stock = selectedVariant?.stock || 0;
+  // Get product variants
+  const variants = product.variants || [];
+
+  // Get selected variant
+  const selectedVariant = isAccessory
+    ? variants[0]
+    : variants.find(
+        (variant) => variant.color?.name === selectedColor
+      );
+
+  // Stock
+  const stock = Number(selectedVariant?.stock) || 0;
   const isAvailable = stock > 0;
 
-  // Temporary local images until real images are uploaded
+  // Temporary local images
   const fallbackProduct = fallbackProducts.find(
     (item) => item.id === Number(id)
   );
 
-  const fallbackImages =
-    fallbackProduct?.variants?.[selectedColor]?.images ||
-    fallbackProduct?.images ||
-    (fallbackProduct?.image ? [fallbackProduct.image] : []);
+  const fallbackImages = isAccessory
+    ? fallbackProduct?.images ||
+      (fallbackProduct?.image ? [fallbackProduct.image] : [])
+    : fallbackProduct?.variants?.[selectedColor]?.images ||
+      fallbackProduct?.images ||
+      (fallbackProduct?.image ? [fallbackProduct.image] : []);
 
+  // Selected images
   const selectedImages =
     selectedVariant?.images?.length > 0
       ? selectedVariant.images
@@ -113,7 +132,7 @@ function ProductDetails() {
 
   // Change selected color
   const handleColorChange = (color) => {
-    const variant = product.variants.find(
+    const variant = variants.find(
       (item) => item.color?.name === color
     );
 
@@ -127,48 +146,54 @@ function ProductDetails() {
   // Add to cart
   const handleAddToCart = () => {
     if (!selectedVariant || !isAvailable) {
-      toast.error("This color is out of stock");
+      toast.error("This product is out of stock.");
       return;
     }
 
-    if (quantity > stock) {
-      toast.error("Not enough stock available");
+    if (quantity > stock || quantity < 1) {
+      toast.error(`Only ${stock} items available.`);
       return;
     }
 
-    // Keep the selected color images compatible
-    // with the current CartContext structure.
+    const cartColor = isAccessory ? "Standard" : selectedColor;
+
+    // Keep compatibility with current CartContext
     const cartProduct = {
       ...product,
       stock: stock,
+      variant_id: selectedVariant.id,
       variants: {
-        [selectedColor]: {
+        [cartColor]: {
           images: selectedImages,
         },
       },
     };
 
-    const added = addToCart(cartProduct, selectedColor, quantity);
+    const added = addToCart(
+      cartProduct,
+      cartColor,
+      quantity
+    );
 
     if (!added) {
-      toast.error(`Only ${stock} items available in this color.`);
+      toast.error(`Only ${stock} items available.`);
       return;
     }
 
     toast.success("Added to cart successfully!");
-
   };
 
   return (
     <section className="min-h-screen bg-white px-5 py-8 md:px-10 md:py-12">
       <div className="mx-auto max-w-7xl">
 
+        {/* Back to section */}
         <Link
-          to="/shop"
+          to={`/shop?type=${isAccessory ? "accessory" : "handbag"}`}
           className="mb-7 inline-flex items-center gap-2 text-sm text-aura-brown/60 transition hover:text-aura-olive"
         >
           <ArrowLeft size={16} />
-          Back to Collection
+          Back to {isAccessory ? "Accessories" : "Handbags"}
         </Link>
 
         <div className="grid items-start gap-8 md:grid-cols-2 md:gap-12 lg:gap-16">
@@ -179,7 +204,7 @@ function ProductDetails() {
               {selectedImages.length > 0 ? (
                 <img
                   src={selectedImages[selectedImage]}
-                  alt={`${product.name} - ${selectedColor}`}
+                  alt={product.name}
                   className="h-full w-full object-cover transition duration-500"
                 />
               ) : (
@@ -189,16 +214,18 @@ function ProductDetails() {
               )}
             </div>
 
+            {/* Image Thumbnails */}
             {selectedImages.length > 1 && (
               <div className="mt-3 flex flex-wrap gap-3">
                 {selectedImages.map((image, index) => (
                   <button
-                    key={`${selectedColor}-${index}`}
+                    key={`${selectedVariant?.id}-${index}`}
                     onClick={() => setSelectedImage(index)}
-                    className={`h-16 w-16 overflow-hidden border-2 transition ${selectedImage === index
-                      ? "border-aura-brown"
-                      : "border-transparent"
-                      }`}
+                    className={`h-16 w-16 overflow-hidden border-2 transition ${
+                      selectedImage === index
+                        ? "border-aura-brown"
+                        : "border-transparent"
+                    }`}
                   >
                     <img
                       src={image}
@@ -214,8 +241,9 @@ function ProductDetails() {
           {/* Product Information */}
           <div className="md:py-2">
 
+            {/* Product Type */}
             <p className="text-[11px] uppercase tracking-[0.25em] text-aura-olive">
-              {product.collection}
+              {isAccessory ? "Accessories" : "Handbags"}
             </p>
 
             <h1 className="mt-3 font-serif text-3xl leading-tight text-aura-brown md:text-4xl">
@@ -232,52 +260,60 @@ function ProductDetails() {
 
             <div className="my-6 h-px bg-aura-brown/15" />
 
-            {/* Colors */}
-            <div>
-              <div className="mb-3 flex items-center gap-2">
-                <h3 className="text-xs font-semibold uppercase tracking-widest text-aura-brown">
-                  Color
-                </h3>
+            {/* Colors - Handbags only */}
+            {!isAccessory && (
+              <div>
+                <div className="mb-3 flex items-center gap-2">
+                  <h3 className="text-xs font-semibold uppercase tracking-widest text-aura-brown">
+                    Color
+                  </h3>
 
-                <span className="text-xs text-aura-brown/60">
-                  / {selectedColor}
-                </span>
-              </div>
+                  <span className="text-xs text-aura-brown/60">
+                    / {selectedColor}
+                  </span>
+                </div>
 
-              <div className="flex flex-wrap gap-2">
-                {product.variants.map((variant) => {
-                  const color = variant.color;
-                  if (!color) return null;
+                <div className="flex flex-wrap gap-2">
+                  {variants.map((variant) => {
+                    const color = variant.color;
 
-                  const available = variant.stock > 0;
-                  const selected = selectedColor === color.name;
+                    if (!color) return null;
 
-                  return (
-                    <button
-                      key={variant.id}
-                      type="button"
-                      disabled={!available}
-                      onClick={() => handleColorChange(color.name)}
-                      title={
-                        available
-                          ? `${color.name} - ${variant.stock} available`
-                          : `${color.name} - Out of Stock`
-                      }
-                      className={`flex items-center gap-2 border px-4 py-2 text-xs transition ${selected
-                        ? "border-aura-brown bg-aura-brown text-white"
-                        : "border-aura-brown/20 text-aura-brown hover:border-aura-brown"
-                        } ${!available
-                          ? "cursor-not-allowed opacity-30 line-through"
-                          : ""
+                    const available = variant.stock > 0;
+                    const selected =
+                      selectedColor === color.name;
+
+                    return (
+                      <button
+                        key={variant.id}
+                        type="button"
+                        disabled={!available}
+                        onClick={() =>
+                          handleColorChange(color.name)
+                        }
+                        title={
+                          available
+                            ? `${color.name} - ${variant.stock} available`
+                            : `${color.name} - Out of Stock`
+                        }
+                        className={`flex items-center gap-2 border px-4 py-2 text-xs transition ${
+                          selected
+                            ? "border-aura-brown bg-aura-brown text-white"
+                            : "border-aura-brown/20 text-aura-brown hover:border-aura-brown"
+                        } ${
+                          !available
+                            ? "cursor-not-allowed opacity-30 line-through"
+                            : ""
                         }`}
-                    >
-                      {selected && <Check size={13} />}
-                      {color.name}
-                    </button>
-                  );
-                })}
+                      >
+                        {selected && <Check size={13} />}
+                        {color.name}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Quantity */}
             <div className="mt-6">
@@ -288,7 +324,9 @@ function ProductDetails() {
               <div className="flex h-11 w-32 items-center justify-between border border-aura-brown/20">
                 <button
                   onClick={() =>
-                    setQuantity((prev) => Math.max(1, prev - 1))
+                    setQuantity((prev) =>
+                      Math.max(1, prev - 1)
+                    )
                   }
                   disabled={!isAvailable || quantity <= 1}
                   className="px-3 text-aura-brown disabled:opacity-30"
@@ -303,7 +341,9 @@ function ProductDetails() {
 
                 <button
                   onClick={() =>
-                    setQuantity((prev) => Math.min(stock, prev + 1))
+                    setQuantity((prev) =>
+                      Math.min(stock, prev + 1)
+                    )
                   }
                   disabled={!isAvailable || quantity >= stock}
                   className="px-3 text-aura-brown disabled:opacity-30"
@@ -350,20 +390,26 @@ function ProductDetails() {
 
             {/* Specifications */}
             <div className="mt-7 space-y-3 text-xs text-aura-brown/70">
-              <div className="flex justify-between border-b border-aura-brown/10 pb-3">
-                <span>Material</span>
-                <span>{product.material}</span>
-              </div>
+              {product.material && (
+                <div className="flex justify-between border-b border-aura-brown/10 pb-3">
+                  <span>Material</span>
+                  <span>{product.material}</span>
+                </div>
+              )}
 
-              <div className="flex justify-between border-b border-aura-brown/10 pb-3">
-                <span>Dimensions</span>
-                <span>{product.dimensions}</span>
-              </div>
+              {product.dimensions && (
+                <div className="flex justify-between border-b border-aura-brown/10 pb-3">
+                  <span>Dimensions</span>
+                  <span>{product.dimensions}</span>
+                </div>
+              )}
 
-              <div className="flex justify-between">
-                <span>Collection</span>
-                <span>{product.collection}</span>
-              </div>
+              {product.collection && (
+                <div className="flex justify-between">
+                  <span>Collection</span>
+                  <span>{product.collection}</span>
+                </div>
+              )}
             </div>
 
           </div>

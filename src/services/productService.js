@@ -3,6 +3,7 @@ import { supabase } from "../lib/supabase";
 const productSelect = `
   id,
   name,
+  product_type,
   description,
   price,
   material,
@@ -44,7 +45,7 @@ function formatProduct(product) {
 
     return {
       id: variant.id,
-      color: variant.colors,
+      color: variant.colors || null,
       stock: variant.stock,
       available: variant.stock > 0,
       images: images.map((image) => image.image_url),
@@ -55,6 +56,8 @@ function formatProduct(product) {
     ...product,
     collection: product.collections?.name || "",
     variants,
+
+    // Accessories can have no colors
     colors: variants
       .filter((variant) => variant.color)
       .map((variant) => variant.color),
